@@ -28,13 +28,13 @@ export interface MoveExplanation {
   steps: ExplainStep[];
 }
 
-const PIECE: Record<string, string> = {
-  p: "peón",
-  n: "caballo",
-  b: "alfil",
-  r: "torre",
-  q: "dama",
-  k: "rey",
+const PIECE: Record<string, { name: string; art: string }> = {
+  p: { name: "peón", art: "el peón" },
+  n: { name: "caballo", art: "el caballo" },
+  b: { name: "alfil", art: "el alfil" },
+  r: { name: "torre", art: "la torre" },
+  q: { name: "dama", art: "la dama" },
+  k: { name: "rey", art: "el rey" },
 };
 
 const PHASE_LABEL: Record<StepPhase, string> = {
@@ -45,7 +45,11 @@ const PHASE_LABEL: Record<StepPhase, string> = {
 };
 
 function pieceName(type: string): string {
-  return PIECE[type] ?? "pieza";
+  return PIECE[type]?.name ?? "pieza";
+}
+
+function articledPiece(type: string): string {
+  return PIECE[type]?.art ?? "la pieza";
 }
 
 /** Amenazas directas: piezas del rival atacadas por la pieza que acaba de mover. */
@@ -62,11 +66,11 @@ function attacks(chess: Chess, move: Move): string[] {
 
 function orientation(chess: Chess, move: Move): string {
   const side = move.color === "w" ? "blancas" : "negras";
-  const name = pieceName(move.piece);
-  const facts: string[] = [`${side} juegan ${move.san}: el ${name} pasa de ${move.from} a ${move.to}`];
+  const art = articledPiece(move.piece);
+  const facts: string[] = [`${side} juegan ${move.san}: ${art} pasa de ${move.from} a ${move.to}`];
 
   if (move.captured) {
-    facts.push(`y captura el ${pieceName(move.captured)}`);
+    facts.push(`y captura ${articledPiece(move.captured)}`);
   }
   if (move.flags.includes("k") || move.flags.includes("q")) {
     facts.push("enrocando, con lo que el rey sale del centro y la torre entra en juego");
@@ -152,10 +156,33 @@ function verification(chess: Chess, move: Move): string {
 }
 
 /**
+ * Extrae una idea concreta para una jugada si el texto de la lección la menciona.
+ */
+export function extractMoveIdea(san: string, contextText?: string): string | null {
+  if (!contextText) return null;
+  const escaped = san.replace(/[+*]/g, "");
+  const isPawnMove = /^[a-h][1-8]$/.test(escaped);
+
+  // Para peones simples (ej. e4, d5), exigir número de jugada (1.e4, ...e5) para evitar confundir con casillas
+  const regexStr = isPawnMove
+    ? `(?:^|[\\s(\\[])(?:\\d+\\.{1,3}|\\.{3}|jugada\\s+)${escaped}(?=[.,;:\\s)\\]]|$)`
+    : `(?:^|[\\s(\\[])(?:\\d+\\.{1,3})?(?:\\.{3})?${escaped}(?=[.,;:\\s)\\]]|$)`;
+
+  const pattern = new RegExp(regexStr);
+  const sentences = contextText.split(/(?<=[.;])\s+/);
+  for (const s of sentences) {
+    if (pattern.test(s)) {
+      return s.trim();
+    }
+  }
+  return null;
+}
+
+/**
  * Construye los cuatro pasos de una jugada a partir del FEN anterior.
  * Devuelve null si la jugada no es legal en esa posición.
  */
-export function explainMove(beforeFen: string, san: string): MoveExplanation | null {
+export function explainMove(beforeFen: string, san: string, _contextNote?: string): MoveExplanation | null {
   const before = new Chess(beforeFen);
   let move: Move;
   try {

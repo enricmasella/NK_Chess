@@ -3161,3 +3161,312 @@ p {
   margin: 8px 0;
   line-height: 1.5;
 }
+
+/* ==========================================================================
+   ESTUDIO DIDÁCTICO E INTERACTIVO: TABLERO CENTRAL, SELECTOR Y ENTRENADOR
+   ========================================================================== */
+
+.lesson-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lesson-header-row .tabs {
+  margin: 0;
+}
+
+.study-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Selector de Línea / Variante */
+.line-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  flex-wrap: wrap;
+}
+
+.line-selector-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.line-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.line-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.line-chip:hover {
+  color: #ffffff;
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.line-chip.active {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  font-weight: 600;
+}
+
+.chip-indicator {
+  font-size: 11px;
+}
+
+/* Layout del Estudio: Tablero a la izquierda, Entrenador a la derecha */
+.study-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 540px) minmax(340px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .study-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.study-board-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-active-play {
+  background: rgba(216, 179, 116, 0.2) !important;
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+/* Cinta de jugadas tipo ticker */
+.moves-tape {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 10px 4px 6px;
+  margin-top: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.tape-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+}
+
+.tape-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: var(--line-strong);
+}
+
+.tape-btn.active,
+.tape-btn[aria-current="true"] {
+  background: var(--gold);
+  color: #121212 !important;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.tape-san {
+  font-weight: 600;
+}
+
+/* Entrenador Interactivo: Columna derecha */
+.study-coach-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.coach-card.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.coach-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.coach-line-title {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+.coach-line-desc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.coach-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.coach-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+
+.coach-ply-num {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  color: var(--gold);
+}
+
+.coach-side-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.coach-specific-idea {
+  background: rgba(216, 179, 116, 0.08);
+  border-left: 3px solid var(--gold);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 16px;
+  border-radius: 0 4px 4px 0;
+}
+
+.idea-marker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.coach-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Cajón de teoría avanzada colapsable */
+.theory-drawer {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg-elev);
+  overflow: hidden;
+}
+
+.theory-summary {
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.theory-summary:hover {
+  color: var(--gold);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.theory-body {
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.theory-block h4 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 6px;
+}
+
+.theory-block ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.theory-block li {
+  margin-bottom: 4px;
+}
+
