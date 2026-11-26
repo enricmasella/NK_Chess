@@ -5,7 +5,7 @@ import { DrillRunner } from "../components/DrillRunner";
 import { StepByStep } from "../components/StepByStep";
 import type { Chapter, Course, StudyStep } from "../data/types";
 import { chapterDrills, parseLine } from "../lib/chess";
-import { explainMove, extractMoveIdea } from "../lib/explain";
+import { explainMove } from "../lib/explain";
 import { useProgress } from "../lib/progress";
 
 interface ChapterViewProps {
@@ -53,7 +53,6 @@ export function ChapterView({ course, chapter }: ChapterViewProps) {
   // FEN anterior a la jugada actual: de ahí salen los cuatro pasos.
   const beforeFen = step <= 0 ? startFen : (steps[step - 1]?.fen ?? startFen);
   const contextNote = active?.note ?? chapter.idea;
-  const specificIdea = lastMove ? extractMoveIdea(lastMove.san, contextNote) : null;
   const explanation = useMemo(
     () => (lastMove ? explainMove(beforeFen, lastMove.san, contextNote) : null),
     [beforeFen, lastMove, contextNote],
@@ -305,46 +304,15 @@ export function ChapterView({ course, chapter }: ChapterViewProps) {
                 </div>
               ) : (
                 <div className="coach-card active-move">
-                  <div className="coach-header">
-                    <span className="coach-ply-num">
-                      {Math.floor(step / 2) + 1}{step % 2 === 0 ? "." : "..."} <strong>{lastMove?.san}</strong>
-                    </span>
-                    <span className="coach-side-badge">
-                      {step % 2 === 0 ? "Blancas" : "Negras"} · Jugada {step + 1} de {steps.length}
-                    </span>
+                  <div className="coach-step-indicator">
+                    <span className="coach-variant-name">{active?.name ?? "Línea principal"}</span>
+                    <span className="coach-ply-counter">JUGADA {step + 1} DE {steps.length}</span>
                   </div>
-
-                  {specificIdea && (
-                    <div className="coach-specific-idea">
-                      <span className="idea-marker">IDEA:</span> {specificIdea}
-                    </div>
-                  )}
 
                   <StepByStep
                     explanation={explanation}
                     empty="Analizando jugada..."
-                    defaultAll
-                    hideControls
                   />
-
-                  <div className="coach-footer-nav">
-                    <button
-                      type="button"
-                      className="btn ghost"
-                      onClick={() => { setAutoPlay(false); setStep((current) => Math.max(current - 1, -1)); }}
-                      disabled={step < 0}
-                    >
-                      [←] Anterior
-                    </button>
-                    <button
-                      type="button"
-                      className="btn primary"
-                      onClick={() => jump(Math.min(step + 1, steps.length - 1))}
-                      disabled={step >= steps.length - 1}
-                    >
-                      <span>{step >= steps.length - 1 ? "Fin de línea" : "Siguiente jugada"}</span> [→]
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

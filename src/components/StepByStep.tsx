@@ -1,118 +1,94 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { MoveExplanation } from "../lib/explain";
 
 interface StepByStepProps {
   explanation: MoveExplanation | null;
   /** Aviso cuando todavía no hay jugada que explicar. */
   empty?: string;
-  /** Revelar todas las fases por defecto para lectura fluida. */
+  /** Revelar todas las fases de de Groot por defecto si se abren (compatibilidad). */
   defaultAll?: boolean;
+  /** Si debe mostrar abiertas las 4 fases de de Groot por defecto (default: false). */
+  defaultOpenPhases?: boolean;
   /** Ocultar controles internos de revelar fases cuando el contenedor ya maneja la navegación. */
   hideControls?: boolean;
 }
 
 /**
- * Recorre la explicación de una jugada de uno en uno o en modo completo.
- * El avance es deliberado: cada paso se lee antes de pasar al siguiente,
- * que es la condición que hace útil la autoexplicación (de Bruin, Rikers y
- * Schmidt, 2007).
+ * Explicación didáctica y directa de una jugada.
+ * Muestra el propósito ajedrecístico, la acción física y las amenazas directas
+ * de forma intuitiva, con el protocolo de 4 fases de de Groot disponible en un
+ * desplegable técnico para evitar sobrecargar al estudiante con texto repetitivo.
  */
 export function StepByStep({
   explanation,
   empty,
-  defaultAll = true,
-  hideControls = false,
+  defaultOpenPhases = false,
 }: StepByStepProps) {
-  const [revealed, setRevealed] = useState(defaultAll ? 4 : 1);
-  const [playing, setPlaying] = useState(false);
-
-  const signature = explanation ? `${explanation.san}:${explanation.steps.length}` : "";
-
-  useEffect(() => {
-    setRevealed(defaultAll ? (explanation?.steps.length ?? 4) : 1);
-    setPlaying(false);
-  }, [signature, defaultAll]);
-
-  useEffect(() => {
-    if (!playing || !explanation) return;
-    if (revealed >= explanation.steps.length) {
-      setPlaying(false);
-      return;
-    }
-    const timer = setTimeout(() => setRevealed((current) => current + 1), 1600);
-    return () => clearTimeout(timer);
-  }, [playing, revealed, explanation]);
+  const [showPhases, setShowPhases] = useState(defaultOpenPhases);
 
   if (!explanation) {
-    return <p className="steps-empty">{empty ?? "Avanza una jugada para ver su explicación paso a paso."}</p>;
+    return <p className="steps-empty">{empty ?? "Avanza una jugada para ver su explicación."}</p>;
   }
 
-  const total = explanation.steps.length;
-  const atEnd = revealed >= total;
+  const sideLabel = explanation.side === "blancas" ? "BLANCAS" : "NEGRAS";
 
   return (
-    <div className="steps">
-      <div className="steps-head">
-        <span className="steps-method">MÉTODO DE GROOT · 4 FASES</span>
-        <span className="steps-move">
-          {explanation.side} · {explanation.san}
-        </span>
+    <div className="move-card">
+      <div className="move-card-header">
+        <div className="move-tag">
+          <span className="move-san">{explanation.san}</span>
+          <span className="move-coords">{explanation.from} &rarr; {explanation.to}</span>
+        </div>
+        <span className="move-side-badge">{sideLabel}</span>
       </div>
 
-      <ol className="steps-list">
-        {explanation.steps.map((step, index) => {
-          const visible = index < revealed;
-          const current = index === revealed - 1;
-          return (
-            <li key={step.phase} className={`step ${visible ? "visible" : "pending"} ${current ? "current" : ""}`}>
-              <span className="step-label">{step.label}</span>
-              {visible ? (
-                <p className="step-text">{step.text}</p>
-              ) : (
-                <p className="step-text step-hidden">paso pendiente</p>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      {/* Idea didáctica principal */}
+      <div className="move-purpose-box">
+        <span className="move-box-label">[ IDEA CLAVE ]</span>
+        <p className="move-purpose-text">{explanation.purpose}</p>
+      </div>
 
-      {!hideControls && (
-        <div className="steps-controls">
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => {
-              setPlaying(false);
-              setRevealed((current) => Math.max(1, current - 1));
-            }}
-            disabled={revealed <= 1}
-          >
-            [←] Anterior
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => setPlaying((current) => !current)}
-            disabled={atEnd && !playing}
-          >
-            {playing ? "[ ] Pausa" : "[>] Reproducir"}
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            onClick={() => {
-              setPlaying(false);
-              setRevealed((current) => Math.min(total, current + 1));
-            }}
-            disabled={atEnd}
-          >
-            Siguiente [→]
-          </button>
-          <span className="steps-count">
-            {revealed} / {total}
-          </span>
+      {/* Acción en el tablero y táctica */}
+      <div className="move-details-grid">
+        <div className="move-detail-item">
+          <span className="move-detail-title">EN EL TABLERO</span>
+          <p className="move-detail-desc">{explanation.boardAction}</p>
         </div>
-      )}
+
+        {explanation.tactics && explanation.tactics.length > 0 && (
+          <div className="move-detail-item">
+            <span className="move-detail-title">AMENAZA Y CONTROL</span>
+            <ul className="move-tactics-list">
+              {explanation.tactics.map((tac, idx) => (
+                <li key={idx}>{tac}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Protocolo técnico de 4 fases de de Groot opcional */}
+      <div className="technical-phases-drawer">
+        <button
+          type="button"
+          className="technical-phases-toggle"
+          onClick={() => setShowPhases((prev) => !prev)}
+          aria-expanded={showPhases}
+        >
+          <span>{showPhases ? "[-] Ocultar análisis técnico" : "[+] Ver desglose técnico (4 fases de de Groot)"}</span>
+        </button>
+
+        {showPhases && (
+          <ol className="steps-list" style={{ marginTop: 10 }}>
+            {explanation.steps.map((step) => (
+              <li key={step.phase} className="step visible">
+                <span className="step-label">{step.label}</span>
+                <p className="step-text">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </div>
   );
 }

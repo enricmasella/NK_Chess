@@ -25,6 +25,13 @@ export interface MoveExplanation {
   to: string;
   /** Quién jugó. */
   side: "blancas" | "negras";
+  /** Propósito ajedrecístico comprensible. */
+  purpose: string;
+  /** Acción concisa en el tablero. */
+  boardAction: string;
+  /** Amenazas o consecuencias tácticas directas. */
+  tactics: string[];
+  /** Fases de de Groot para análisis técnico opcional. */
   steps: ExplainStep[];
 }
 
@@ -178,11 +185,132 @@ export function extractMoveIdea(san: string, contextText?: string): string | nul
   return null;
 }
 
+function inferMovePurpose(move: Move, chessAfter: Chess, contextNote?: string): string {
+  const custom = extractMoveIdea(move.san, contextNote);
+  if (custom) return custom;
+
+  if (move.flags.includes("k") || move.flags.includes("q")) {
+    return "Pone el rey a resguardo en el flanco y activa la torre hacia el centro.";
+  }
+  if (chessAfter.isCheckmate()) {
+    return "Jaque mate decisivo: el rey rival no tiene escapatoria legal.";
+  }
+  if (chessAfter.inCheck()) {
+    return "Jaque directo: fuerza una respuesta defensiva inmediata del rival.";
+  }
+  if (move.captured) {
+    return `Captura ${articledPiece(move.captured)} en ${move.to}, alterando el balance táctico.`;
+  }
+
+  // Peones
+  if (move.piece === "p") {
+    if (["e4", "d4", "e5", "d5", "c4", "c5"].includes(move.to)) {
+      return `Ocupa el centro con ${move.san} y abre diagonales para desarrollar piezas.`;
+    }
+    if (["f4", "f5"].includes(move.to)) {
+      return "Gambito de flanco: busca desviar peones centrales rivales y abrir columnas activas.";
+    }
+    if (["d3", "e3", "c3", "d6", "e6", "c6"].includes(move.to)) {
+      return "Refuerza la estructura de peones y sostiene el control del centro.";
+    }
+    return `Avanza el peón a ${move.to} ganando espacio en el tablero.`;
+  }
+
+  // Caballos
+  if (move.piece === "n") {
+    if (["f3", "c3", "f6", "c6"].includes(move.to)) {
+      return "Desarrolla el caballo hacia el centro disputando casillas clave y preparando el enroque.";
+    }
+    if (["d4", "e4", "d5", "e5"].includes(move.to)) {
+      return `Centraliza el caballo en ${move.to}, instalando una pieza muy activa en territorio rival.`;
+    }
+    if (["d6", "d7", "e7"].includes(move.to)) {
+      return `Reubica el caballo en ${move.to} con funciones de defensa y reorganización.`;
+    }
+    return `Maniobra con el caballo hacia ${move.to} buscando casillas avanzadas.`;
+  }
+
+  // Alfiles
+  if (move.piece === "b") {
+    if (["c4", "c5"].includes(move.to)) {
+      return "Desarrolla el alfil por la diagonal activa apuntando a la casilla vulnerable (f7 / f2).";
+    }
+    if (["b5", "b4"].includes(move.to)) {
+      return "Clava o presiona la pieza enemiga que sostiene el centro.";
+    }
+    if (["g5", "g4"].includes(move.to)) {
+      return "Clava el caballo rival contra la dama y disputa la iniciativa del flanco.";
+    }
+    if (["e2", "e7", "d3", "d6"].includes(move.to)) {
+      return "Desarrollo sólido que conecta piezas menores y completa la preparación del enroque.";
+    }
+    if (["g2", "b2", "g7", "b7"].includes(move.to)) {
+      return "Fianchetto: ejerce presión a larga distancia por la gran diagonal.";
+    }
+    if (move.to === "b3") {
+      return "Retira el alfil a b3 manteniéndolo activo en la diagonal clave sin permitir cambios forzados.";
+    }
+    return `Desarrolla el alfil a ${move.to} activando una diagonal importante.`;
+  }
+
+  // Damas
+  if (move.piece === "q") {
+    if (["h5", "h4"].includes(move.to)) {
+      return "Salida agresiva de dama amenazando simultáneamente puntos vulnerables como f7 y peones centrales sueltos.";
+    }
+    if (["f3", "f6"].includes(move.to)) {
+      return "Centraliza la dama para presionar casillas clave y coordinar el ataque.";
+    }
+    return `Reubica la dama en ${move.to} aumentando la coordinación entre piezas.`;
+  }
+
+  // Torres
+  if (move.piece === "r") {
+    if (["e1", "d1", "e8", "d8"].includes(move.to)) {
+      return "Centraliza la torre en una columna activa para presionar en el juego medio.";
+    }
+    return `Activa la torre en ${move.to} para controlar columnas o filas clave.`;
+  }
+
+  // Reyes
+  if (move.piece === "k") {
+    return `Mueve el rey a ${move.to} buscando mayor seguridad en el tablero.`;
+  }
+
+  return `Juega ${move.san} mejorando la posición en el tablero.`;
+}
+
+function deriveBoardAction(move: Move): string {
+  if (move.flags.includes("k")) return "Enroque corto (O-O): el rey pasa a la columna g y la torre a la f.";
+  if (move.flags.includes("q")) return "Enroque largo (O-O-O): el rey pasa a la columna c y la torre a la d.";
+  const art = articledPiece(move.piece);
+  const cap = move.captured ? `, capturando ${articledPiece(move.captured)}` : "";
+  return `${art.charAt(0).toUpperCase() + art.slice(1)} pasa de ${move.from} a ${move.to}${cap}.`;
+}
+
+function deriveTactics(chessAfter: Chess, move: Move): string[] {
+  const points: string[] = [];
+  const threatened = attacks(chessAfter, move);
+  for (const t of threatened.slice(0, 3)) {
+    points.push(`Amenaza directa: presiona sobre ${t}.`);
+  }
+  if (chessAfter.inCheck()) {
+    points.push("Pone en jaque al rey contrario.");
+  }
+  if (move.piece === "p" && ["e4", "d4", "e5", "d5"].includes(move.to)) {
+    points.push(`Controla casillas centrales clave alrededor de ${move.to}.`);
+  }
+  if (points.length === 0) {
+    points.push(`Mejora la coordinación de piezas en la casilla ${move.to}.`);
+  }
+  return points;
+}
+
 /**
- * Construye los cuatro pasos de una jugada a partir del FEN anterior.
+ * Construye la explicación de una jugada a partir del FEN anterior.
  * Devuelve null si la jugada no es legal en esa posición.
  */
-export function explainMove(beforeFen: string, san: string, _contextNote?: string): MoveExplanation | null {
+export function explainMove(beforeFen: string, san: string, contextNote?: string): MoveExplanation | null {
   const before = new Chess(beforeFen);
   let move: Move;
   try {
@@ -204,6 +332,9 @@ export function explainMove(beforeFen: string, san: string, _contextNote?: strin
     from: move.from,
     to: move.to,
     side: move.color === "w" ? "blancas" : "negras",
+    purpose: inferMovePurpose(move, after, contextNote),
+    boardAction: deriveBoardAction(move),
+    tactics: deriveTactics(after, move),
     steps,
   };
 }

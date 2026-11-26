@@ -3365,56 +3365,165 @@ p {
   margin-top: 8px;
 }
 
-.coach-header {
+.coach-step-indicator {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
-  margin-bottom: 14px;
-}
-
-.coach-ply-num {
-  font-family: var(--font-mono);
-  font-size: 17px;
-  color: var(--gold);
-}
-
-.coach-side-badge {
+  margin-bottom: 16px;
   font-family: var(--font-mono);
   font-size: 11px;
+}
+
+.coach-variant-name {
+  color: var(--text-muted);
+  text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.coach-ply-counter {
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+
+/* Tarjeta didáctica de jugada (clara, directa y sin sobrecarga) */
+.move-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.move-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.move-tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.move-san {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.move-coords {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.move-side-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Bloque destacado con la idea ajedrecística principal */
+.move-purpose-box {
+  background: rgba(216, 179, 116, 0.08);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--r-xs) var(--r-xs) 0;
+  padding: 12px 14px;
+}
+
+.move-box-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.move-purpose-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Detalles concretos: acción física y amenazas directas */
+.move-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  padding: 12px 14px;
+}
+
+.move-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.move-detail-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
   color: var(--text-dim);
   text-transform: uppercase;
 }
 
-.coach-specific-idea {
-  background: rgba(216, 179, 116, 0.08);
-  border-left: 3px solid var(--gold);
-  padding: 10px 14px;
+.move-detail-desc {
   font-size: 13.5px;
   line-height: 1.5;
-  color: var(--text);
-  margin-bottom: 16px;
-  border-radius: 0 4px 4px 0;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.idea-marker {
+.move-tactics-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.move-tactics-list li {
+  margin-bottom: 2px;
+}
+
+/* Desplegable técnico opcional (de Groot) */
+.technical-phases-drawer {
+  margin-top: 4px;
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+}
+
+.technical-phases-toggle {
+  background: none;
+  border: none;
+  padding: 0;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--gold);
-  font-weight: 700;
-  margin-right: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease;
 }
 
-.coach-footer-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+.technical-phases-toggle:hover {
+  color: var(--gold);
 }
 
 /* Cajón de teoría avanzada colapsable */
